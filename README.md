@@ -23,7 +23,7 @@ The `dbunit-builder-maven-plugin` must be added to the list of plugins in the `p
 ```
 A relative path to the `schema.sql` file must be provided in the plugin configuration section.
 
-You can execute the `dbunit-builder:generate-builders` goal or you can directly link the goal to the `generate-test-sources` phase:
+You can execute the `dbunit-builder:generate-builders` goal, or you can directly link the goal to the `generate-test-sources` phase:
 ```xml
 <plugin>
     <groupId>org.dbunit.dataset.builder</groupId>
