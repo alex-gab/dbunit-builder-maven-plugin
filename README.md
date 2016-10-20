@@ -51,7 +51,7 @@ directly in your test source files in order to compile them.
 
 Also the plugin must be added as a dependency to your project, because at this stage of development the generated classes directly depend on the plugin:
 ```xml
- <dependency>
+<dependency>
     <groupId>org.dbunit.dataset.builder</groupId>
     <artifactId>dbunit-builder-maven-plugin</artifactId>
     <version>1.0</version>
