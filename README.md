@@ -1,4 +1,4 @@
-# DBUnit - Dynamically Generating Data Sets Builders Based on Database Schema
+# DBUnit - Generating Data Set Builders Based on Database Schema
 
 ## Introduction
 
