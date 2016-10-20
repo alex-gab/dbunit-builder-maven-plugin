@@ -65,6 +65,7 @@ CREATE TABLE Employee (
   salary      INT
 );
 ```
+At this stage of development, only [H2 Data Types](http://www.h2database.com/html/datatypes.html) are supported.
 
 ## Usage
 You can use the generated builders in your test classes as follows:
