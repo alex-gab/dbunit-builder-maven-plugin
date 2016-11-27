@@ -1,4 +1,4 @@
-# DBUnit - Dynamically Generating Data Sets Builders Based on Database Schema
+# DBUnit - Generating Data Set Builders Based on Database Schema
 
 ## Introduction
 
@@ -23,7 +23,7 @@ The `dbunit-builder-maven-plugin` must be added to the list of plugins in the `p
 ```
 A relative path to the `schema.sql` file must be provided in the plugin configuration section.
 
-You can execute the `dbunit-builder:generate-builders` goal or you can directly link the goal to the `generate-test-sources` phase:
+You can execute the `dbunit-builder:generate-builders` goal, or you can directly link the goal to the `generate-test-sources` phase:
 ```xml
 <plugin>
     <groupId>org.dbunit.dataset.builder</groupId>
@@ -51,7 +51,7 @@ directly in your test source files in order to compile them.
 
 Also the plugin must be added as a dependency to your project, because at this stage of development the generated classes directly depend on the plugin:
 ```xml
- <dependency>
+<dependency>
     <groupId>org.dbunit.dataset.builder</groupId>
     <artifactId>dbunit-builder-maven-plugin</artifactId>
     <version>1.0</version>
