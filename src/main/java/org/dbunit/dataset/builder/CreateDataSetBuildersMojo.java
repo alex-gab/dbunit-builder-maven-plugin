@@ -1,8 +1,5 @@
 package org.dbunit.dataset.builder;
 
-import com.squareup.javapoet.JavaFile;
-import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.TypeSpec;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
@@ -11,8 +8,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.MavenProject;
-import org.dbunit.dataset.DataSetException;
 import org.dbunit.dataset.builder.javageneration.EntityClass;
 
 import java.io.*;
@@ -22,24 +17,18 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import static javax.lang.model.element.Modifier.FINAL;
-import static javax.lang.model.element.Modifier.PUBLIC;
-
 @Mojo(name = "generate-builders")
 public final class CreateDataSetBuildersMojo extends AbstractMojo {
     @Parameter(property = "schema.file")
     private File schemaFile;
 
-    @Parameter(defaultValue = "${project}", readonly = true)
-    private MavenProject project;
-
     @Override
     public final void execute() throws MojoExecutionException, MojoFailureException {
         try {
             final List<CreateTable> statements = parseSchema(schemaFile);
-            final String packageName = "org.dbunit.dataset.builder";
+            final String packageName = "org.dbunit.builder";
             final List<EntityClass> entityClasses = createEntities(statements, packageName);
-            generateCode(entityClasses, packageName);
+            generateCode(entityClasses);
         } catch (SqlParsingException e) {
             throw new MojoExecutionException("Error parsing the sql file: " + e.getSchemaFileName(), e);
         } catch (CreateDataSetBuildersException e) {
@@ -82,26 +71,13 @@ public final class CreateDataSetBuildersMojo extends AbstractMojo {
         return entityClasses;
     }
 
-    private void generateCode(List<EntityClass> entityClasses, String packageName) throws CreateDataSetBuildersException {
+    private void generateCode(List<EntityClass> entityClasses) throws CreateDataSetBuildersException {
         try {
             Path generationPath = createGenerationFolder();
-
-            final TypeSpec.Builder dataSetBuilder = TypeSpec.classBuilder("SchemaDataSetBuilder").
-                    addModifiers(PUBLIC, FINAL).
-                    superclass(AbstractSchemaDataSetBuilder.class).
-                    addMethod(
-                            MethodSpec.constructorBuilder().
-                                    addModifiers(PUBLIC).
-                                    addException(DataSetException.class).
-                                    addStatement("super(new $T())", DataSetBuilder.class).
-                                    build()
-                    );
             for (EntityClass entityClass : entityClasses) {
-                entityClass.addNewRowMethod(dataSetBuilder);
                 entityClass.generateRowBuilder(generationPath);
             }
 
-            JavaFile.builder(packageName, dataSetBuilder.build()).build().writeTo(generationPath);
         } catch (IOException e) {
             throw new CreateDataSetBuildersException("Code generation exception: ", e);
         }
