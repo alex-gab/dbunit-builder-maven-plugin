@@ -1,4 +1,4 @@
-package org.dbunit.dataset.builder;
+package org.dbunit.builder;
 
 import java.math.BigDecimal;
 import java.sql.Blob;

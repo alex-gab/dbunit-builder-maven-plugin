@@ -1,4 +1,4 @@
-package org.dbunit.dataset.builder.javageneration;
+package org.dbunit.builder.javageneration;
 
 import com.squareup.javapoet.*;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
@@ -6,10 +6,10 @@ import net.sf.jsqlparser.statement.create.table.CreateTable;
 import org.dbunit.builder.AbstractRow;
 import org.dbunit.builder.Builder;
 import org.dbunit.builder.Column;
+import org.dbunit.builder.SqlTypes;
 import org.dbunit.dataset.DataSetException;
 import org.dbunit.dataset.builder.ColumnSpec;
 import org.dbunit.dataset.builder.DataRowBuilder;
-import org.dbunit.dataset.builder.SqlTypes;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -34,7 +34,10 @@ public final class EntityClass {
     }
 
     public final void generateRowBuilder(Path generationPath) throws IOException {
-        TypeSpec.Builder rowBuilder = TypeSpec.classBuilder(rowClassName + "Builder").
+        final String builderClassName = rowClassName + "Builder";
+        final ClassName builderClassType = ClassName.bestGuess(builderClassName);
+
+        TypeSpec.Builder rowBuilder = TypeSpec.classBuilder(builderClassName).
                 addSuperinterface(
                         ParameterizedTypeName.get(ClassName.get(Builder.class),
                                 rowBuilderClass)).
@@ -42,11 +45,11 @@ public final class EntityClass {
                 addMethod(MethodSpec.constructorBuilder().addModifiers(PRIVATE).build()).
                 addMethod(MethodSpec.methodBuilder(getFactoryMethodName(rowClassName)).
                         addModifiers(PUBLIC, STATIC).
-                        returns(ClassName.bestGuess(rowClassName + "Builder")).
-                        addStatement("return new $L()", rowClassName + "Builder").
+                        returns(builderClassType).
+                        addStatement("return new $L()", builderClassName).
                         build());
 
-        getFactoryMethodName(rowClassName + "Builder");
+        getFactoryMethodName(builderClassName);
 
 
         final TypeSpec.Builder row = TypeSpec.classBuilder(rowClassName).
@@ -56,7 +59,7 @@ public final class EntityClass {
 
         final MethodSpec.Builder rowConstructor = MethodSpec.constructorBuilder().
                 addModifiers(PRIVATE).
-                addParameter(ClassName.bestGuess(rowClassName + "Builder"), "builder", FINAL).
+                addParameter(builderClassType, "builder", FINAL).
                 addStatement("super($S)", tableName);
 
         final MethodSpec.Builder addToDataSetMethod = MethodSpec.methodBuilder("addThisToDataSet").
@@ -78,7 +81,7 @@ public final class EntityClass {
             addToDataSetMethod.addStatement("dataRowBuilder.with($L.getColumnSpec(), $L.getValue())", name, name);
             rowBuilder.addMethod(MethodSpec.methodBuilder(name).
                     addModifiers(PUBLIC, FINAL).
-                    returns(ClassName.bestGuess(rowClassName + "Builder")).
+                    returns(builderClassType).
                     addParameter(clazz, name, FINAL).
                     addStatement("this.$L = new Column($T.newColumn($S), $L)", name, ColumnSpec.class, name, name).
                     addStatement("return this").

@@ -1,4 +1,4 @@
-package org.dbunit.dataset.builder;
+package org.dbunit.builder;
 
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -8,7 +8,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.dbunit.dataset.builder.javageneration.EntityClass;
+import org.dbunit.builder.javageneration.EntityClass;
 
 import java.io.*;
 import java.nio.file.Files;

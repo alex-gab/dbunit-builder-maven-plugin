@@ -1,11 +1,11 @@
-package org.dbunit.dataset.builder;
+package org.dbunit.builder;
 
-public class CreateDataSetBuildersException extends Exception {
+class CreateDataSetBuildersException extends Exception {
     public CreateDataSetBuildersException(Throwable cause, String msg, Object... args) {
         super(String.format(msg, args), cause);
     }
 
-    public CreateDataSetBuildersException(String msg, Object... args) {
+    CreateDataSetBuildersException(String msg, Object... args) {
         super(String.format(msg, args));
     }
 }
