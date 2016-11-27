@@ -34,41 +34,12 @@ public final class EntityClass {
     }
 
     public final void generateRowBuilder(Path generationPath) throws IOException {
-        final String builderClassName = rowClassName + "Builder";
-        final ClassName builderClassType = ClassName.bestGuess(builderClassName);
+        final ClassName builderClassType = ClassName.bestGuess(rowClassName + "Builder");
 
-        TypeSpec.Builder rowBuilder = TypeSpec.classBuilder(builderClassName).
-                addSuperinterface(
-                        ParameterizedTypeName.get(ClassName.get(Builder.class),
-                                rowBuilderClass)).
-                addModifiers(PUBLIC, STATIC, FINAL).
-                addMethod(MethodSpec.constructorBuilder().addModifiers(PRIVATE).build()).
-                addMethod(MethodSpec.methodBuilder(getFactoryMethodName(rowClassName)).
-                        addModifiers(PUBLIC, STATIC).
-                        returns(builderClassType).
-                        addStatement("return new $L()", builderClassName).
-                        build());
-
-        getFactoryMethodName(builderClassName);
-
-
-        final TypeSpec.Builder row = TypeSpec.classBuilder(rowClassName).
-                addModifiers(PUBLIC, FINAL).
-                superclass(AbstractRow.class);
-
-
-        final MethodSpec.Builder rowConstructor = MethodSpec.constructorBuilder().
-                addModifiers(PRIVATE).
-                addParameter(builderClassType, "builder", FINAL).
-                addStatement("super($S)", tableName);
-
-        final MethodSpec.Builder addToDataSetMethod = MethodSpec.methodBuilder("addThisToDataSet").
-                addAnnotation(Override.class).
-                addModifiers(PUBLIC, FINAL).
-                addParameter(org.dbunit.dataset.builder.DataSetBuilder.class, "dataSetBuilder", FINAL).
-                returns(org.dbunit.dataset.builder.DataSetBuilder.class).
-                addException(DataSetException.class).
-                addStatement("final $T dataRowBuilder = dataSetBuilder.newRow(tableName)", DataRowBuilder.class);
+        final TypeSpec.Builder rowBuilder = getRowBuilder();
+        final TypeSpec.Builder row = getRow();
+        final MethodSpec.Builder rowConstructor = getRowConstructor(builderClassType);
+        final MethodSpec.Builder addToDataSetMethod = getAddThisToDataSet();
 
         for (ColumnDefinition columnDefinition : statement.getColumnDefinitions()) {
             final String dataType = columnDefinition.getColDataType().getDataType();
@@ -90,16 +61,39 @@ public final class EntityClass {
 
         addToDataSetMethod.addStatement("return dataRowBuilder.add()");
         row.addMethod(rowConstructor.build()).addMethod(addToDataSetMethod.build());
-        rowBuilder.addMethod(
-                MethodSpec.methodBuilder("build").
-                        addModifiers(PUBLIC, FINAL).
-                        addAnnotation(Override.class).
-                        returns(rowBuilderClass).
-                        addStatement("return new $L(this)", rowClassName).
-                        build());
+        addBuildMethod(rowBuilder);
         row.addType(rowBuilder.build());
 
         JavaFile.builder(packageName, row.build()).build().writeTo(generationPath);
+    }
+
+    private TypeSpec.Builder getRowBuilder() {
+        final String builderClassName = rowClassName + "Builder";
+        final ClassName builderClassType = ClassName.bestGuess(builderClassName);
+        return TypeSpec.classBuilder(builderClassName).
+                addSuperinterface(
+                        ParameterizedTypeName.get(ClassName.get(Builder.class),
+                                rowBuilderClass)).
+                addModifiers(PUBLIC, STATIC, FINAL).
+                addMethod(MethodSpec.constructorBuilder().addModifiers(PRIVATE).build()).
+                addMethod(MethodSpec.methodBuilder(getFactoryMethodName(rowClassName)).
+                        addModifiers(PUBLIC, STATIC).
+                        returns(builderClassType).
+                        addStatement("return new $L()", builderClassName).
+                        build());
+    }
+
+    private TypeSpec.Builder getRow() {
+        return TypeSpec.classBuilder(rowClassName).
+                addModifiers(PUBLIC, FINAL).
+                superclass(AbstractRow.class);
+    }
+
+    private MethodSpec.Builder getRowConstructor(ClassName builderClassType) {
+        return MethodSpec.constructorBuilder().
+                addModifiers(PRIVATE).
+                addParameter(builderClassType, "builder", FINAL).
+                addStatement("super($S)", tableName);
     }
 
     private String getFactoryMethodName(String className) {
@@ -111,11 +105,31 @@ public final class EntityClass {
         }
     }
 
+    private MethodSpec.Builder getAddThisToDataSet() {
+        return MethodSpec.methodBuilder("addThisToDataSet").
+                addAnnotation(Override.class).
+                addModifiers(PUBLIC, FINAL).
+                addParameter(org.dbunit.dataset.builder.DataSetBuilder.class, "dataSetBuilder", FINAL).
+                returns(org.dbunit.dataset.builder.DataSetBuilder.class).
+                addException(DataSetException.class).
+                addStatement("final $T dataRowBuilder = dataSetBuilder.newRow(tableName)", DataRowBuilder.class);
+    }
+
     private void addField(TypeSpec.Builder destinationClass, String fieldName, Class fieldClass) {
         destinationClass.addField(
                 ParameterizedTypeName.get(Column.class, fieldClass),
                 fieldName,
                 PRIVATE
         );
+    }
+
+    private void addBuildMethod(TypeSpec.Builder rowBuilder) {
+        rowBuilder.addMethod(
+                MethodSpec.methodBuilder("build").
+                        addModifiers(PUBLIC, FINAL).
+                        addAnnotation(Override.class).
+                        returns(rowBuilderClass).
+                        addStatement("return new $L(this)", rowClassName).
+                        build());
     }
 }
